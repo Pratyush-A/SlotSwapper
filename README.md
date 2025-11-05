@@ -273,7 +273,7 @@ SlotSwapper/
 ## 📝 API Endpoints
 
 ### Authentication
-- `POST /api/auth/register` - Register new user
+- `POST /api/auth/signup` - Register new user
 - `POST /api/auth/login` - User login
 
 ### Events
