@@ -40,12 +40,16 @@ app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api', swapRoutes);
 
+
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
 const PORT = process.env.PORT || 4000;
+app.get('/ping', (req, res) => {
+  res.status(200).send('Server is alive!');
+});
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 module.exports = {app,io};
