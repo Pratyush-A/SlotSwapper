@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -12,10 +12,17 @@ function ProtectedRoute({ children }) {
   return token ? children : <Navigate to="/signup" />;
 }
 
-export default function App() {
+function AppContent() {
+  const { token } = useAuth();
+  const location = useLocation();
+
+  
+  const hideNavbar =
+    location.pathname === "/login" || location.pathname === "/signup";
+
   return (
-    <BrowserRouter>
-      <Navbar />
+    <>
+      {!hideNavbar && token && <Navbar />}
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
@@ -44,6 +51,14 @@ export default function App() {
           }
         />
       </Routes>
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   );
 }

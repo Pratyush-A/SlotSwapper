@@ -14,26 +14,22 @@ router.post("/", auth, async (req, res) => {
     const start = new Date(startTime);
     const end = new Date(endTime);
 
-    
     const conflict = await Event.findOne({
       startTime: { $lt: end },
       endTime: { $gt: start },
     }).populate("owner", "name email");
 
     if (conflict) {
-      
       const nextAvailable = new Date(conflict.endTime);
-      const conflictMessage = `⛔ This slot is already booked by ${
+      const conflictMessage = `This slot is already booked by ${
         conflict.owner?.name || "another user"
-      } for "${conflict.title}" 
-from ${new Date(conflict.startTime).toLocaleTimeString([], {
+      } for "${conflict.title}" from ${new Date(conflict.startTime).toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
       })} to ${new Date(conflict.endTime).toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
-      })}. 
-Next available slot starts after ${nextAvailable.toLocaleTimeString([], {
+      })}. Next available slot starts after ${nextAvailable.toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
       })}.`;
@@ -58,13 +54,14 @@ Next available slot starts after ${nextAvailable.toLocaleTimeString([], {
       status: "BUSY",
     });
 
+    req.io.emit("eventUpdated", { message: "Event created" });
+
     res.json(newEvent);
   } catch (err) {
     console.error("Error creating event:", err);
     res.status(500).json({ error: "Server error creating event" });
   }
 });
-
 
 router.get("/me", auth, async (req, res) => {
   try {
@@ -77,7 +74,6 @@ router.get("/me", auth, async (req, res) => {
     res.status(500).json({ error: "Server error fetching events" });
   }
 });
-
 
 router.get("/other-events", auth, async (req, res) => {
   try {
@@ -108,6 +104,9 @@ router.patch("/:id", auth, async (req, res) => {
     });
 
     await ev.save();
+
+    req.io.emit("eventUpdated", { message: "Event updated" });
+
     res.json(ev);
   } catch (err) {
     console.error("Error updating event:", err);
@@ -124,6 +123,9 @@ router.delete("/:id", auth, async (req, res) => {
       return res.status(403).json({ error: "Unauthorized" });
 
     await Event.deleteOne({ _id: ev._id });
+
+    req.io.emit("eventUpdated", { message: "Event deleted" });
+
     res.json({ success: true });
   } catch (err) {
     console.error("Error deleting event:", err);
